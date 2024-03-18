@@ -1,0 +1,6 @@
+@Dapper_WebApi_HostAddress = http://localhost:5121
+
+GET {{Dapper_WebApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
