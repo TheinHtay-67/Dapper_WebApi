@@ -1,7 +1,9 @@
 ﻿using Dapper;
 using Dapper_WebApi.Context;
+using Dapper_WebApi.DTO;
 using Dapper_WebApi.Interface;
 using Dapper_WebApi.Model;
+using System.Data;
 
 namespace Dapper_WebApi.Repositories
 {
@@ -21,6 +23,42 @@ namespace Dapper_WebApi.Repositories
             {
                 var companies = await connection.QueryAsync<Company>(query);
                 return companies.ToList();
+            }
+        }
+
+        public async Task<Company> GetCompany(int id)
+        {
+            var query = "SELECT * FROM Companies WHERE Id = @Id";
+            using(var connection = _context.CreateConnection())
+            {
+                var company = await connection.QuerySingleOrDefaultAsync<Company>(query, new { id });
+                return company;
+            }
+        }
+
+        public async Task<Company> CreateCompany(CompanyDto company)
+        {
+            var query = "INSERT INTO Companies (Name, Address, Country) VALUES (@Name, @Address, @Country)" +
+                "SELECT CAST(SCOPE_IDENTITY() as int)";
+
+            var parameters = new DynamicParameters();
+            parameters.Add("Name", company.Name, DbType.String);
+            parameters.Add("Address", company.Address, DbType.String);
+            parameters.Add("Country", company.Country, DbType.String);
+
+            using (var connection = _context.CreateConnection())
+            {
+                var id = await connection.QuerySingleAsync<int>(query, parameters);
+
+                var createdCompany = new Company
+                {
+                    Id = id,
+                    Name = company.Name,
+                    Address = company.Address,
+                    Country = company.Country
+                };
+
+                return createdCompany;
             }
         }
     }
